@@ -1,149 +1,124 @@
-const rows=25, cols=30;
-let grid=[];
-let startNode=null,endNode=null;
-let mouseDown=false;
-let clickStage=0;
-let visitedCounter=0;
+const rows=25, cols=40;
+let grid=[], startNode=null, endNode=null;
+let mouseDown=false, clickStage=0;
+let visitedCount=0;
+let frameCount=0, lastFPS=performance.now();
 
 document.body.onmousedown=()=>mouseDown=true;
 document.body.onmouseup=()=>mouseDown=false;
 
-document.addEventListener("keydown",e=>{
-    if(e.code==="Space") startSearch();
-    if(e.key==="c"||e.key==="C") resetGrid();
-});
+document.onkeydown=e=>{
+ if(e.code==="Space") startSearch();
+ if(e.key==="c") clearBoard();
+ if(e.key==="r") randomMaze();
+}
+
+class Node{
+ constructor(r,c,el){
+  this.r=r; this.c=c; this.el=el;
+  this.wall=false; this.g=Infinity;
+  this.parent=null;
+ }
+ neighbors(){
+  const dirs=[[1,0],[-1,0],[0,1],[0,-1]];
+  return dirs.map(d=>grid[this.r+d[0]]?.[this.c+d[1]]).filter(Boolean);
+ }
+}
 
 function createGrid(){
-    const gridDiv=document.getElementById("grid");
-    gridDiv.innerHTML="";
-    grid=[];
+ const g=document.getElementById("grid");
+ for(let r=0;r<rows;r++){
+  grid[r]=[];
+  for(let c=0;c<cols;c++){
+   let el=document.createElement("div");
+   el.className="cell";
+   g.appendChild(el);
+   let n=new Node(r,c,el);
+   grid[r][c]=n;
 
-    for(let r=0;r<rows;r++){
-        let row=[];
-        for(let c=0;c<cols;c++){
-            const cell=document.createElement("div");
-            cell.className="cell";
-            gridDiv.appendChild(cell);
+   el.onmousedown=()=>setPoints(n);
+   el.onmouseover=e=>{ if(e.buttons==1 && clickStage>=2) addWall(n); }
+  }
+ }
+}
+createGrid();
 
-            let node={
-                r,c,f:0,g:Infinity,h:0,
-                neighbors:[],parent:null,
-                wall:false,element:cell
-            };
-
-            cell.onmousedown=()=>handleClick(node);
-            cell.onmouseover=()=>{ if(mouseDown && clickStage>=2) addWall(node); };
-
-            row.push(node);
-        }
-        grid.push(row);
-    }
-    addNeighbors();
+function setPoints(n){
+ if(clickStage==0){startNode=n;n.el.classList.add("start");clickStage++;}
+ else if(clickStage==1){endNode=n;n.el.classList.add("end");clickStage++;}
+ else addWall(n);
 }
 
-function handleClick(node){
-    if(clickStage===0){
-        startNode=node;
-        node.element.classList.add("start");
-        clickStage++;
-    } else if(clickStage===1 && node!==startNode){
-        endNode=node;
-        node.element.classList.add("end");
-        clickStage++;
-    } else if(clickStage>=2){
-        addWall(node);
-    }
+function addWall(n){
+ if(n!==startNode&&n!==endNode){
+  n.wall=true;n.el.classList.add("wall");
+ }
 }
 
-function addWall(node){
-    if(node!==startNode && node!==endNode){
-        node.wall=true;
-        node.element.classList.add("wall");
-    }
-}
-
-function addNeighbors(){
-    for(let r=0;r<rows;r++){
-        for(let c=0;c<cols;c++){
-            let n=grid[r][c];
-            for(let dr=-1;dr<=1;dr++){
-                for(let dc=-1;dc<=1;dc++){
-                    if(dr===0 && dc===0) continue;
-                    let nr=r+dr,nc=c+dc;
-                    if(nr>=0 && nc>=0 && nr<rows && nc<cols)
-                        n.neighbors.push(grid[nr][nc]);
-                }
-            }
-        }
-    }
-}
-
-function heuristic(a,b){
-    return Math.hypot(a.r-b.r,a.c-b.c);
-}
+function heuristic(a,b){ return Math.abs(a.r-b.r)+Math.abs(a.c-b.c); }
 
 async function startSearch(){
-    if(!startNode||!endNode) return alert("Start va End tanlang!");
+ if(!startNode||!endNode) return alert("Start/End qo‘ying");
 
-    let open=[startNode];
-    startNode.g=0;
+ let t0=performance.now();
+ let open=[startNode];
+ startNode.g=0;
+ visitedCount=0;
 
-    while(open.length>0){
-        let current=open.reduce((a,b)=>a.f<b.f?a:b);
+ while(open.length){
+  let current=open.reduce((a,b)=>a.g<b.g?a:b);
+  if(current===endNode){ drawPath(); break; }
 
-        if(current===endNode){
-            drawPath(current);
-            return;
-        }
+  open=open.filter(n=>n!==current);
 
-        open=open.filter(n=>n!==current);
-
-        for(let neighbor of current.neighbors){
-            if(neighbor.wall) continue;
-
-            let tempG=current.g+heuristic(current,neighbor);
-
-            if(tempG<neighbor.g){
-                neighbor.parent=current;
-                neighbor.g=tempG;
-                neighbor.h=heuristic(neighbor,endNode);
-                neighbor.f=neighbor.g+neighbor.h;
-
-                if(!open.includes(neighbor)){
-                    open.push(neighbor);
-                    if(neighbor!==endNode){
-                        neighbor.element.classList.add("visited");
-                        visitedCounter++;
-                        document.getElementById("visitedCount").innerText=visitedCounter;
-                    }
-                }
-            }
-        }
-        await sleep(15);
+  for(let n of current.neighbors()){
+   if(n.wall) continue;
+   let temp=current.g+1;
+   if(temp<n.g){
+    n.g=temp; n.parent=current;
+    if(!open.includes(n)){
+     open.push(n);
+     n.el.classList.add("visited");
+     visitedCount++;
     }
-    alert("Yo‘l topilmadi");
+   }
+  }
+  updateFPS();
+  await sleep(10);
+ }
+
+ document.getElementById("time").innerText=Math.round(performance.now()-t0);
+ document.getElementById("visited").innerText=visitedCount;
 }
 
-function drawPath(node){
-    let length=0;
-    while(node.parent){
-        node=node.parent;
-        node.element.classList.add("path");
-        length++;
-    }
-    document.getElementById("pathLength").innerText=length;
+function drawPath(){
+ let n=endNode,len=0;
+ while(n.parent){
+  n=n.parent;
+  n.el.classList.add("path");
+  len++;
+ }
+ document.getElementById("path").innerText=len;
 }
 
-function resetGrid(){
-    clickStage=0;
-    startNode=null;
-    endNode=null;
-    visitedCounter=0;
-    document.getElementById("visitedCount").innerText=0;
-    document.getElementById("pathLength").innerText=0;
-    createGrid();
+function randomMaze(){
+ grid.flat().forEach(n=>{
+  if(Math.random()<0.3 && n!==startNode && n!==endNode){
+   n.wall=true; n.el.classList.add("wall");
+  }
+ });
 }
+
+function clearBoard(){ location.reload(); }
 
 function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
 
-createGrid();
+function updateFPS(){
+ frameCount++;
+ let now=performance.now();
+ if(now-lastFPS>1000){
+  document.getElementById("fps").innerText=frameCount;
+  frameCount=0;
+  lastFPS=now;
+ }
+}
