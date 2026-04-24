@@ -1,0 +1,24 @@
+body {
+    font-family: Arial;
+    text-align: center;
+    background: #f4f4f4;
+}
+
+#grid {
+    margin: 20px auto;
+    display: grid;
+    grid-template-columns: repeat(20, 25px);
+    width: max-content;
+}
+
+.cell {
+    width: 25px;
+    height: 25px;
+    border: 1px solid #ccc;
+}
+
+.wall { background: black; }
+.start { background: green; }
+.end { background: red; }
+.visited { background: lightblue; }
+.path { background: yellow; }
