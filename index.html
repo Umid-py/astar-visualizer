@@ -2,29 +2,33 @@
 <html lang="uz">
 <head>
 <meta charset="UTF-8">
-<title>A* Pathfinding Vizualizer</title>
+<title>A* Visualizer</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<div class="container">
+<header>
+  <h1>A* Pathfinding Visualizer</h1>
+</header>
 
-    <header>
-        <h1>A* Pathfinding Vizualizer</h1>
-        <div class="info">
-            <p>🖱 Chap klik: Start → End → Devor chizish</p>
-            <p>⌨️ SPACE: Boshlash | C: Restart</p>
-        </div>
-    </header>
+<div class="panel">
 
-    <div id="stats">
-        <span>Visited: <b id="visitedCount">0</b></span>
-        <span>Path length: <b id="pathLength">0</b></span>
-    </div>
+  <div class="controls">
+    <button onclick="startSearch()">▶ Start (Space)</button>
+    <button onclick="clearBoard()">🧹 Clear (C)</button>
+    <button onclick="randomMaze()">🎲 Maze (R)</button>
+  </div>
 
-    <div id="grid"></div>
+  <div class="stats">
+    <div>⏱ Time: <span id="time">0</span> ms</div>
+    <div>📦 Visited: <span id="visited">0</span></div>
+    <div>🛣 Path: <span id="path">0</span></div>
+    <div>⚡ FPS: <span id="fps">0</span></div>
+  </div>
 
 </div>
+
+<div id="grid"></div>
 
 <script src="script.js"></script>
 </body>
