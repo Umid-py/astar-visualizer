@@ -1,12 +1,15 @@
-# A* Algoritm Vizualizatori (Uzbek)
+# A* Pathfinding Vizualizer (UZ)
 
-Bu loyiha A* pathfinding algoritmini vizual ko‘rsatadi.
+## Boshqaruv
+🖱 Chap klik:
+1-marta → Boshlash nuqtasi  
+2-marta → Tugash nuqtasi  
+Bosib turib → To‘siqlar chizish  
 
-## Ishlatish
-1. Grid yaratish tugmasini bosing
-2. Boshlanish nuqtasini tanlang (yashil)
-3. Tugash nuqtasini tanlang (qizil)
-4. Devorga aylantirish uchun kataklarni bosing
-5. A* ni boshlash tugmasini bosing
+⌨️ Tugmalar:
+SPACE → Algoritmni ishga tushirish  
+C → Restart
 
-## Live demo (GitHub Pages orqali ishlaydi)
+## Texnologiyalar
+HTML + CSS + Vanilla JS
+GitHub Pages orqali ishlaydi
