@@ -1,27 +1,30 @@
 <!DOCTYPE html>
 <html lang="uz">
 <head>
-    <meta charset="UTF-8">
-    <title>A* Algoritm Vizualizatori</title>
-    <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<title>A* Pathfinding Vizualizer</title>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<h1>A* Algoritmini Vizual Ko‘rsatish</h1>
+<div class="container">
 
-<div class="controls">
-    <button onclick="createGrid()">Grid yaratish</button>
-    <button onclick="startSearch()">A* ni boshlash</button>
-    <button onclick="clearGrid()">Tozalash</button>
+    <header>
+        <h1>A* Pathfinding Vizualizer</h1>
+        <div class="info">
+            <p>🖱 Chap klik: Start → End → Devor chizish</p>
+            <p>⌨️ SPACE: Boshlash | C: Restart</p>
+        </div>
+    </header>
+
+    <div id="stats">
+        <span>Visited: <b id="visitedCount">0</b></span>
+        <span>Path length: <b id="pathLength">0</b></span>
+    </div>
+
+    <div id="grid"></div>
+
 </div>
-
-<p>
-Boshlanish nuqtasini tanlash uchun yashil katakni bosing.
-Tugash nuqtasi qizil katak.
-Devorga aylantirish uchun kataklarni bosib chiqing.
-</p>
-
-<div id="grid"></div>
 
 <script src="script.js"></script>
 </body>
