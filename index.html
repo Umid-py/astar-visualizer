@@ -2,21 +2,25 @@
 <html lang="uz">
 <head>
 <meta charset="UTF-8">
-<title>A* Pathfinding Visualizer</title>
-<link rel="stylesheet" href="style.css">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>A* Pathfinding Pro</title>
+<link rel="stylesheet" href="/style.css">
 </head>
 <body>
 
 <header>
-  <h1>A* Pathfinding Visualizer</h1>
+  <h1>A* PATHFINDING VISUALIZER PRO</h1>
+  <p>
+    🖱 1-klik: Start | 2-klik: Finish | Bosib turish: Wall  
+    ⌨ Space: Start | C: Clear | R: Maze
+  </p>
 </header>
 
 <div class="panel">
-
   <div class="controls">
-    <button onclick="startSearch()">▶ Start (Space)</button>
-    <button onclick="clearBoard()">🧹 Clear (C)</button>
-    <button onclick="randomMaze()">🎲 Maze (R)</button>
+    <button onclick="startSearch()">▶ START</button>
+    <button onclick="clearBoard()">🧹 CLEAR</button>
+    <button onclick="randomMaze()">🎲 MAZE</button>
   </div>
 
   <div class="stats">
@@ -25,12 +29,11 @@
     <div>🛣 Path: <span id="path">0</span></div>
     <div>⚡ FPS: <span id="fps">0</span></div>
   </div>
-
 </div>
 
 <div id="status">Tayyor</div>
 <div id="grid"></div>
 
-<script src="script.js"></script>
+<script src="/script.js"></script>
 </body>
 </html>
