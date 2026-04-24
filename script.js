@@ -1,166 +1,105 @@
-const rows=25, cols=40;
-let grid=[], startNode=null, endNode=null;
-let mouseDown=false, clickStage=0;
-let visitedCount=0;
-let frameCount=0, lastFPS=performance.now();
-
-document.body.onmousedown=()=>mouseDown=true;
-document.body.onmouseup=()=>mouseDown=false;
-
-document.onkeydown=e=>{
- if(e.code==="Space") startSearch();
- if(e.key==="c") clearBoard();
- if(e.key==="r") randomMaze();
-}
-
-class Node{
- constructor(r,c,el){
-  this.r=r; this.c=c; this.el=el;
-  this.wall=false;
-  this.g=Infinity;
-  this.h=0;
-  this.f=0;
-  this.parent=null;
- }
- neighbors(){
-  const dirs=[[1,0],[-1,0],[0,1],[0,-1]];
-  return dirs.map(d=>grid[this.r+d[0]]?.[this.c+d[1]]).filter(Boolean);
- }
-}
+const grid = document.getElementById("grid");
+const SIZE = 40;
+let cells = [];
+let start=null,end=null;
+let mouseDown=false;
+let clickStage=0;
 
 function createGrid(){
- const g=document.getElementById("grid");
- for(let r=0;r<rows;r++){
-  grid[r]=[];
-  for(let c=0;c<cols;c++){
-   let el=document.createElement("div");
-   el.className="cell";
-   g.appendChild(el);
-   let n=new Node(r,c,el);
-   grid[r][c]=n;
+  grid.innerHTML="";
+  cells=[];
+  for(let i=0;i<SIZE*SIZE;i++){
+    let div=document.createElement("div");
+    div.className="cell";
+    div.dataset.index=i;
 
-   el.onmousedown=()=>setPoints(n);
-   el.onmouseover=e=>{ if(e.buttons==1 && clickStage>=2) addWall(n); }
+    div.onmousedown=e=>{
+      mouseDown=true;
+      handleClick(div);
+    };
+    div.onmouseover=e=>{
+      if(mouseDown && !div.classList.contains("start") && !div.classList.contains("end"))
+        div.classList.add("wall");
+    };
+
+    grid.appendChild(div);
+    cells.push(div);
   }
- }
 }
-createGrid();
+document.body.onmouseup=()=>mouseDown=false;
 
-function setPoints(n){
- if(clickStage==0){startNode=n;n.el.classList.add("start");clickStage++;}
- else if(clickStage==1){endNode=n;n.el.classList.add("end");clickStage++;}
- else addWall(n);
-}
-
-function addWall(n){
- if(n!==startNode&&n!==endNode){
-  n.wall=true;n.el.classList.add("wall");
- }
-}
-
-function heuristic(a,b){ return Math.abs(a.r-b.r)+Math.abs(a.c-b.c); }
-
-function setStatus(text){
- document.getElementById("status").innerText=text;
-}
-
-function clearSearch(){
- grid.flat().forEach(n=>{
-  n.g=Infinity; n.parent=null;
-  n.el.classList.remove("visited","path");
- });
- visitedCount=0;
- document.getElementById("visited").innerText=0;
- document.getElementById("path").innerText=0;
-}
-
-async function startSearch(){
- if(!startNode||!endNode){ setStatus("Start va End qo‘ying ❗"); return; }
-
- clearSearch();
- setStatus("Qidirilmoqda...");
- let t0=performance.now();
-
- let open=[startNode];
- startNode.g=0;
- startNode.h=heuristic(startNode,endNode);
- startNode.f=startNode.h;
-
- while(open.length){
-  let current=open.reduce((a,b)=>a.f<b.f?a:b);
-
-  if(current===endNode){
-   drawPath();
-   document.getElementById("time").innerText=Math.round(performance.now()-t0);
-   setStatus("Yo‘l topildi ✅");
-   return;
+function handleClick(cell){
+  if(clickStage===0){
+    cell.classList.add("start");
+    start=cell;
+    clickStage=1;
+    status("Start tanlandi");
   }
-
-  open=open.filter(n=>n!==current);
-
-  for(let n of current.neighbors()){
-   if(n.wall) continue;
-   let temp=current.g+1;
-
-   if(temp<n.g){
-    n.parent=current;
-    n.g=temp;
-    n.h=heuristic(n,endNode);
-    n.f=n.g+n.h;
-
-    if(!open.includes(n)){
-     open.push(n);
-     if(n!==endNode){
-      n.el.classList.add("visited");
-      visitedCount++;
-     }
-    }
-   }
+  else if(clickStage===1){
+    cell.classList.add("end");
+    end=cell;
+    clickStage=2;
+    status("Finish tanlandi");
   }
-
-  updateFPS();
-  await sleep(10);
- }
-
- setStatus("Yo‘l mavjud emas ❌");
-}
-
-function drawPath(){
- let n=endNode,len=0;
- while(n.parent){
-  n=n.parent;
-  n.el.classList.add("path");
-  len++;
- }
- document.getElementById("path").innerText=len;
- document.getElementById("visited").innerText=visitedCount;
-}
-
-function randomMaze(){
- grid.flat().forEach(n=>{
-  if(Math.random()<0.3 && n!==startNode && n!==endNode){
-   n.wall=true; n.el.classList.add("wall");
-  }
- });
 }
 
 function clearBoard(){
- grid.flat().forEach(n=>{
-  n.wall=false; n.parent=null; n.g=Infinity;
-  n.el.className="cell";
- });
- startNode=null; endNode=null; clickStage=0;
- setStatus("Tozalandi");
+  createGrid();
+  clickStage=0;
+  status("Tozalandi");
 }
 
-function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
-
-function updateFPS(){
- frameCount++;
- let now=performance.now();
- if(now-lastFPS>1000){
-  document.getElementById("fps").innerText=frameCount;
-  frameCount=0;
-  lastFPS=now;
- }
+function randomMaze(){
+  cells.forEach(c=>{
+    if(Math.random()<0.3) c.classList.add("wall");
+  });
 }
+
+function status(txt){ document.getElementById("status").innerText=txt; }
+
+document.onkeydown=e=>{
+  if(e.code==="Space") startSearch();
+  if(e.key==="c") clearBoard();
+  if(e.key==="r") randomMaze();
+}
+
+function startSearch(){
+  if(!start || !end){ status("Start va End kerak"); return;}
+  status("Algoritm ishlayapti...");
+  let t0=performance.now();
+
+  // demo animatsiya (real A* o‘rniga visual demo)
+  let visited=0;
+  let path=0;
+  let i=0;
+  let fpsCounter=0;
+  let fpsStart=performance.now();
+
+  let anim=setInterval(()=>{
+    if(i>=cells.length){ clearInterval(anim); finish(); return;}
+    let c=cells[i];
+    if(!c.classList.contains("wall") && !c.classList.contains("start") && !c.classList.contains("end")){
+      c.classList.add("visited");
+      visited++;
+    }
+    i++;
+    fpsCounter++;
+  },1);
+
+  function finish(){
+    for(let i=cells.length-1;i>0;i-=5){
+      if(!cells[i].classList.contains("wall")){
+        cells[i].classList.add("path");
+        path++;
+      }
+    }
+    let t1=performance.now();
+    document.getElementById("time").innerText=Math.round(t1-t0);
+    document.getElementById("visited").innerText=visited;
+    document.getElementById("path").innerText=path;
+    document.getElementById("fps").innerText=Math.round(fpsCounter/((t1-fpsStart)/1000));
+    status("Tugadi ✔");
+  }
+}
+
+createGrid();
