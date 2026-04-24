@@ -16,7 +16,10 @@ document.onkeydown=e=>{
 class Node{
  constructor(r,c,el){
   this.r=r; this.c=c; this.el=el;
-  this.wall=false; this.g=Infinity;
+  this.wall=false;
+  this.g=Infinity;
+  this.h=0;
+  this.f=0;
   this.parent=null;
  }
  neighbors(){
@@ -57,38 +60,69 @@ function addWall(n){
 
 function heuristic(a,b){ return Math.abs(a.r-b.r)+Math.abs(a.c-b.c); }
 
-async function startSearch(){
- if(!startNode||!endNode) return alert("Start/End qo‘ying");
+function setStatus(text){
+ document.getElementById("status").innerText=text;
+}
 
+function clearSearch(){
+ grid.flat().forEach(n=>{
+  n.g=Infinity; n.parent=null;
+  n.el.classList.remove("visited","path");
+ });
+ visitedCount=0;
+ document.getElementById("visited").innerText=0;
+ document.getElementById("path").innerText=0;
+}
+
+async function startSearch(){
+ if(!startNode||!endNode){ setStatus("Start va End qo‘ying ❗"); return; }
+
+ clearSearch();
+ setStatus("Qidirilmoqda...");
  let t0=performance.now();
+
  let open=[startNode];
  startNode.g=0;
- visitedCount=0;
+ startNode.h=heuristic(startNode,endNode);
+ startNode.f=startNode.h;
 
  while(open.length){
-  let current=open.reduce((a,b)=>a.g<b.g?a:b);
-  if(current===endNode){ drawPath(); break; }
+  let current=open.reduce((a,b)=>a.f<b.f?a:b);
+
+  if(current===endNode){
+   drawPath();
+   document.getElementById("time").innerText=Math.round(performance.now()-t0);
+   setStatus("Yo‘l topildi ✅");
+   return;
+  }
 
   open=open.filter(n=>n!==current);
 
   for(let n of current.neighbors()){
    if(n.wall) continue;
    let temp=current.g+1;
+
    if(temp<n.g){
-    n.g=temp; n.parent=current;
+    n.parent=current;
+    n.g=temp;
+    n.h=heuristic(n,endNode);
+    n.f=n.g+n.h;
+
     if(!open.includes(n)){
      open.push(n);
-     n.el.classList.add("visited");
-     visitedCount++;
+     if(n!==endNode){
+      n.el.classList.add("visited");
+      visitedCount++;
+     }
     }
    }
   }
+
   updateFPS();
   await sleep(10);
  }
 
- document.getElementById("time").innerText=Math.round(performance.now()-t0);
- document.getElementById("visited").innerText=visitedCount;
+ setStatus("Yo‘l mavjud emas ❌");
 }
 
 function drawPath(){
@@ -99,6 +133,7 @@ function drawPath(){
   len++;
  }
  document.getElementById("path").innerText=len;
+ document.getElementById("visited").innerText=visitedCount;
 }
 
 function randomMaze(){
@@ -109,7 +144,14 @@ function randomMaze(){
  });
 }
 
-function clearBoard(){ location.reload(); }
+function clearBoard(){
+ grid.flat().forEach(n=>{
+  n.wall=false; n.parent=null; n.g=Infinity;
+  n.el.className="cell";
+ });
+ startNode=null; endNode=null; clickStage=0;
+ setStatus("Tozalandi");
+}
 
 function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
 
